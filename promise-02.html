@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promise-异步实现</title>
+</head>
+<body>
+  
+</body>
+<script>
+  class Promise {
+    successedFnQueen = []
+    failedFnQueen = []
+    constructor(executor){
+      // excutor： 传过来的函数
+      this.state = "pending"
+      this.resolveRes = undefined
+      this.rejectRes = undefined
+
+      const resolve = (val) => {
+        if(this.state === "pending"){
+          this.state = "fulfilled"
+          this.resolveRes = val
+          this.successedFnQueen.forEach(fn => fn(val))
+        }
+      }
+      const reject = (val) => {
+        if(this.state === "pending"){
+          this.state = "rejected"
+          this.rejectRes = val
+          this.failedFnQueen.forEach(fn => fn(val))
+        }
+      }
+
+      // 执行默认传过来的函数
+      executor && executor(resolve, reject)
+    }
+    // 放在原型上
+    then(successedFn, failedFn){
+      if(this.state === "pending"){
+        this.successedFnQueen.push(successedFn)
+        this.failedFnQueen.push(failedFn)
+      }else if(this.state === "fulfilled"){
+        return successedFn(this.resolveRes)
+      }else if(this.state === "rejected"){
+        return failedFn(this.rejectRes)
+      }
+    }
+  }
+
+  const p = new Promise((resolve,reject)=>{
+    setTimeout(() => {
+      console.log("timeout")
+      resolve(200)
+    }, 3000);
+  })
+
+  console.log(p)
+  p.then(res => {
+    console.log("res111",res)
+  }, err => {
+    console.log("err",err)
+  })
+
+  p.then(res => {
+    console.log("res222",res)
+  }, err => {
+    console.log("err",err)
+  })
+
+
+</script>
+</html>
