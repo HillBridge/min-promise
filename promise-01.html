@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promise-三个状态</title>
+</head>
+<body>
+  
+</body>
+<script>
+  class Promise {
+    constructor(excutor){
+      // excutor： 传过来的函数
+      this.state = "pending"
+      this.resolveRes = ""
+      this.rejectRes = ""
+
+      const resolve = (val) => {
+        this.state = "fulfilled"
+        this.resolveRes = val
+      }
+      const reject = (val) => {
+        this.state = "rejected"
+        this.rejectRes = val
+      }
+
+      // 执行默认传过来的函数
+      excutor && excutor(resolve, reject)
+    }
+    // 放在原型上
+    then(successedFn, failedFn){
+      if(this.state === "fulfilled"){
+        return successedFn(this.resolveRes)
+      }else if(this.state === "rejected"){
+        return failedFn(this.resolveRes)
+      }
+    }
+  }
+
+  const p = new Promise((resolve,reject)=>{
+    reject(1)
+  })
+
+  console.log(p)
+  p.then(res => {
+    console.log("res",res)
+  }, err => {
+    console.log("err",err)
+  })
+</script>
+</html>
