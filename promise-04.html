@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promise-resolve/reject/race/all静态方法的实现</title>
+</head>
+<body>
+  
+</body>
+<script>
+  class Promise {
+    successedFnQueen = []
+    failedFnQueen = []
+    constructor(executor){
+      // excutor： 传过来的函数
+      this.state = "pending"
+      this.resolveRes = undefined
+      this.rejectRes = undefined
+
+      const resolve = (val) => {
+        if(this.state === "pending"){
+          this.state = "fulfilled"
+          this.resolveRes = val
+          this.successedFnQueen.forEach(fn => fn(val))
+        }
+      }
+      const reject = (val) => {
+        if(this.state === "pending"){
+          this.state = "rejected"
+          this.rejectRes = val
+          this.failedFnQueen.forEach(fn => fn(val))
+        }
+      }
+
+      // 执行默认传过来的函数
+      executor && executor(resolve, reject)
+    }
+    // 放在原型上
+    then(successedFn, failedFn){
+      return new Promise((resolve,reject) => {
+        // 进来就会执行
+        if(this.state === "pending"){
+          this.successedFnQueen.push(successedFn)
+          this.failedFnQueen.push(failedFn)
+        }else if(this.state === "fulfilled"){
+          const res = successedFn(this.resolveRes)
+          if(res instanceof Promise){
+            res.then(resolve, reject)
+          }else{
+            return resolve(res)
+          }
+        }else if(this.state === "rejected"){
+          return failedFn(this.rejectRes)
+        }
+      })
+    }
+  }
+
+  Promise.resolve = (v) => {
+    return new Promise((resolve,reject) => {
+      resolve(v)
+    })
+  }
+
+  Promise.reject = (v) => {
+    return new Promise((resolve,reject) => {
+      reject(v)
+    })
+  }
+
+  Promise.race = (promises) => {
+    return new Promise((resolve,reject) => {
+      promises.forEach(promise => {
+        promise.then(resolve, reject)
+      })
+    })
+  }
+
+  Promise.all = (promises) => {
+    const len = promises.length
+    let count = 0
+    let resArr = []
+    return new Promise((resolve,reject) => {
+      promises.forEach(promise => {
+        promise.then((res) => {
+          count++
+          resArr.push(res)
+          if(len === count){
+            resolve(resArr)
+          }
+        }, reject)
+      })
+    })
+  }
+
+  // Promise.resolve(200).then(data => {
+  //   console.log("data",data)
+  // })
+
+  // Promise.reject(500).then(data => {
+  //   console.log("data",data)
+  // }, (err) => {
+  //   console.log("err",err)
+  // })
+
+  const p1 = new Promise((resolve,reject) => {
+    setTimeout(() => {
+      resolve(1)
+    }, 1000);
+  })
+  const p2 = new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(2)
+    }, 2000);
+  })
+
+  // Promise.race([p1,p2]).then(val => {
+  //   console.log(val)
+  // })
+
+  Promise.all([p1,p2]).then(res => {
+    console.log("kkk",res)
+  }, err => {
+    console.log("err",err)
+  })
+</script>
+</html>
