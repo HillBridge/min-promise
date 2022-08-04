@@ -1,2 +1,2 @@
 # min-promise
-简版promise
+学习promise
